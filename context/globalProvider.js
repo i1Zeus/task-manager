@@ -1,9 +1,10 @@
 "use client";
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import themes from "./themes";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useUser } from "@clerk/nextjs";
+import Modal from "@/components/Modals/Modal";
 
 export const GlobalContext = createContext();
 export const GlobalUpdateContext = createContext();
@@ -15,17 +16,18 @@ export const GlobalProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modal, setModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-
+  const [modalContent, setModalContent] = useState(null);
   const [tasks, setTasks] = useState([]);
-
   const theme = themes[selectedTheme];
 
-  const openModal = () => {
+  const openModal = (content = null) => {
+    setModalContent(content);
     setModal(true);
   };
 
   const closeModal = () => {
     setModal(false);
+    setModalContent(null);
   };
 
   const collapseMenu = () => {
@@ -36,26 +38,21 @@ export const GlobalProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const res = await axios.get("/api/tasks");
-
-      const sorted = res.data.sort((a, b) => {
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      });
-
+      const sorted = res.data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
       setTasks(sorted);
-
       setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
     }
   };
 
   const deleteTask = async (id) => {
     try {
-      const res = await axios.delete(`/api/tasks/${id}`);
+      await axios.delete(`/api/tasks/${id}`);
       toast.success("Task deleted");
-
       allTasks();
     } catch (error) {
       console.log(error);
@@ -65,10 +62,8 @@ export const GlobalProvider = ({ children }) => {
 
   const updateTask = async (task) => {
     try {
-      const res = await axios.put(`/api/tasks`, task);
-
+      await axios.put(`/api/tasks`, task);
       toast.success("Task updated");
-
       allTasks();
     } catch (error) {
       console.log(error);
@@ -80,7 +75,7 @@ export const GlobalProvider = ({ children }) => {
   const importantTasks = tasks.filter((task) => task.isImportant === true);
   const incompleteTasks = tasks.filter((task) => task.isCompleted === false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) allTasks();
   }, [user]);
 
@@ -105,6 +100,7 @@ export const GlobalProvider = ({ children }) => {
     >
       <GlobalUpdateContext.Provider value={{}}>
         {children}
+        {modal && <Modal content={modalContent} closeModal={closeModal} />}
       </GlobalUpdateContext.Provider>
     </GlobalContext.Provider>
   );
