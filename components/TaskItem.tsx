@@ -3,6 +3,7 @@ import { useGlobalState } from "@/context/globalProvider";
 import formatDate from "@/utils/formatDate";
 import { edit, trash } from "@/utils/Icons";
 import styled from "styled-components";
+import EditContent from "./Modals/EditContent";
 
 interface Props {
   title: string;
@@ -13,7 +14,20 @@ interface Props {
 }
 
 function TaskItem({ title, description, date, isCompleted, id }: Props) {
-  const { theme, deleteTask, updateTask } = useGlobalState();
+  const { theme, deleteTask, updateTask, openModal } = useGlobalState();
+
+  const handleEdit = () => {
+    const task = {
+      title,
+      description,
+      date,
+      isCompleted,
+      isImportant: false,
+      id,
+    };
+    openModal(<EditContent task={task} />);
+  };
+
   return (
     <TaskItemStyled theme={theme}>
       <h1>{title}</h1>
@@ -47,7 +61,9 @@ function TaskItem({ title, description, date, isCompleted, id }: Props) {
             Incomplete
           </button>
         )}
-        <button className="edit">{edit}</button>
+        <button className="edit" onClick={() => handleEdit()}>
+          {edit}
+        </button>
         <button
           className="delete"
           onClick={() => {
