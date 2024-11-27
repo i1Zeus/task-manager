@@ -1,15 +1,14 @@
 "use client";
-import React from "react";
-import styled from "styled-components";
 import { useGlobalState } from "@/context/globalProvider";
 import Image from "next/image";
+import styled from "styled-components";
 
-import menu from "@/utils/menu";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import Button from "@/components/Button";
 import { arrowLeft, bars, logout } from "@/utils/Icons";
-import { UserButton, useClerk, useUser } from "@clerk/nextjs";
+import menu from "@/utils/menu";
+import { useClerk, useUser } from "@clerk/nextjs";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
 function Sidebar() {
   const { theme, collapsed, collapseMenu } = useGlobalState();
@@ -17,7 +16,7 @@ function Sidebar() {
 
   const { user } = useUser();
 
-  const { firstName, lastName, imageUrl } = user || {
+  const { firstName, lastName, imageUrl, emailAddresses } = user || {
     firstName: "",
     lastName: "",
     imageUrl: "",
@@ -35,15 +34,14 @@ function Sidebar() {
       <button className="toggle-nav" onClick={collapseMenu}>
         {collapsed ? bars : arrowLeft}
       </button>
-      <div className="profile">
+      <div className="profile flex flex-col items-center justify-start gap-2">
         <div className="profile-overlay"></div>
         <div className="image">
           <Image width={70} height={70} src={imageUrl} alt="profile" />
         </div>
-        <div className="user-btn absolute z-20 top-0 w-full h-full">
-          {/* <UserButton /> */}
-        </div>
-        <h1 className="capitalize">{firstName}</h1>
+        <h1 className="capitalize !text-xs">
+          {firstName ? firstName : emailAddresses?.[0]?.emailAddress}
+        </h1>
       </div>
       <ul className="nav-items">
         {menu.map((item) => {
